@@ -1,15 +1,16 @@
-# Multi-stage build for Jetzig backend
-FROM alpine:latest AS builder
+# ベースイメージを Debian (glibc系) に変更
+FROM debian:bookworm-slim AS builder
 
-# Install build dependencies
-RUN apk add --no-cache \
+# ビルド依存パッケージのインストール (aptを使用)
+RUN apt-get update && apt-get install -y \
     curl \
-    xz \
+    xz-utils \
     git \
-    postgresql-dev \
-    build-base
+    libpq-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Zig (アーキテクチャを自動判別してダウンロード)
+# Zigのインストール (アーキテクチャ自動判別)
 RUN arch=$(uname -m) && \
     if [ "$arch" = "x86_64" ]; then \
         ZIG_ARCH="x86_64"; \
@@ -21,30 +22,27 @@ RUN arch=$(uname -m) && \
     curl -L "https://ziglang.org/download/0.13.0/zig-linux-${ZIG_ARCH}-0.13.0.tar.xz" | tar -xJ -C /usr/local && \
     ln -s "/usr/local/zig-linux-${ZIG_ARCH}-0.13.0/zig" /usr/local/bin/zig
 
-# Set working directory
 WORKDIR /app
 
-# Copy source code
 COPY . .
 
-# Install dependencies and build (Jetzigを使わないので単純なビルド)
+# ビルド実行
 RUN zig build -Doptimize=ReleaseSafe
 
-# Runtime stage
-FROM alpine:latest
+# ランタイムステージも Debian に合わせる
+FROM debian:bookworm-slim
 
-# Install runtime dependencies
-RUN apk add --no-cache \
-    libpq \
-    libstdc++
+# 実行時依存パッケージ (PostgreSQLクライアントライブラリ)
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy built binary from builder
+# ビルド成果物のコピー
 COPY --from=builder /app/zig-out/bin/myapp /app/myapp
 
-# Expose port
 EXPOSE 8080
 
-# Run the application
 CMD ["/app/myapp"]
