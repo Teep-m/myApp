@@ -1,0 +1,15 @@
+.{
+    .name = "myapp",
+    .version = "0.1.0",
+    .minimum_zig_version = "0.13.0",
+
+    // 依存関係を空にする
+    .dependencies = .{
+    },
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}

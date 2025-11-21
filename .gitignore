@@ -1,0 +1,42 @@
+# Environment variables
+.env
+
+# Docker volumes
+postgres_data/
+redis_data/
+
+# Zig
+zig-cache/
+zig-out/
+.zig-cache/
+
+# Rust
+target/
+**/*.rs.bk
+Cargo.lock
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+
+# Build artifacts
+build/
+dist/
+*.wasm
